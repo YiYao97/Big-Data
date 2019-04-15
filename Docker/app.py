@@ -3,6 +3,9 @@ from werkzeug.utils import secure_filename
 import os
 import tensorflow as tf
 from tensorflow.keras import layers
+from cassandra.cluster import Cluster
+
+cluster = Cluster()
 
 UPLOAD_FOLDER = '/root/Docker'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
@@ -24,7 +27,6 @@ numbers = [
         'done': False
     }
 ]
-
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -62,6 +64,10 @@ def get_number(number_id):
 @app.errorhandler(404)
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
+
+@app.errorhandler(400)
+def bad_request(error):
+    return make_response(jsonify({'error': 'Bad Request'}), 400)
 
 @app.route('/numbers/upload', methods=['POST'])
 def upload_number():
