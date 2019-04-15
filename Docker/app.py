@@ -2,13 +2,10 @@ from flask import Flask, request, jsonify, make_response, redirect, url_for, abo
 from werkzeug.utils import secure_filename
 import os
 import tensorflow as tf
-from tensorflow.keras import layers
-from cassandra.cluster import Cluster
 
-cluster = Cluster()
 
 UPLOAD_FOLDER = '/root/Docker'
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+ALLOWED_EXTENSIONS = set(['JPG', 'PNG', 'png', 'jpg', 'jpeg', 'bmp'])
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -28,19 +25,16 @@ numbers = [
     }
 ]
 def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @app.route('/mnist/upload_image', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
         if 'file' not in request.files:
-            flash('No file part')
             return redirect(request.url)
         file = request.files['file']
         if file.filename == '':
-            flash('No selected file')
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
@@ -77,7 +71,7 @@ def upload_number():
         'id': numbers[-1]['id'] + 1,
         'title':request.json['title'],
         'description':request.json.get('description', ""),
-         'done':False
+        'done':False
     }
     numbers.append(number)
     return jsonify({'number':number}) , 201
