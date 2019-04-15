@@ -1,3 +1,4 @@
+#log information
 import logging
 
 log = logging.getLogger()
