@@ -1,9 +1,9 @@
-from flask import Flask, request, jsonify, make_response, abort
-from werkzeug.utils import secure_filename
 import os
 import time
+from flask import Flask, request, jsonify, make_response, abort
+from werkzeug.utils import secure_filename
 from mnist_soft import predict
-
+from cas import createKeySpace, insertData, deleteData
 
 UPLOAD_FOLDER = '/root/Big-Data/Docker/uploaded_images'
 ALLOWED_EXTENSIONS = set(['JPG', 'PNG', 'png', 'jpg', 'jpeg', 'bmp'])
@@ -12,6 +12,7 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 numbers = []
+session = createKeySpace("mnist")
 
 
 def allowed_file(filename):
@@ -38,35 +39,36 @@ def delete_number(number_id):
     if len(number) == 0:
         abort(404)
     numbers.remove(number[0])
+    # delete data in cassandra table
+    deleteData(session, number_id)
     return jsonify({'Delete': u"Success"})
 
 
 @app.route('/numbers', methods=['POST'])
 def create_number():
-    if request.method == 'POST':
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            abort(400)
-        file = request.files['file']
-        # check if the file has the allowed format
-        if not (file and allowed_file(file.filename)):
-            abort(422)
-        filename = secure_filename(file.filename)
-        saved_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(saved_path)
-        # add new number to numbers
-        prediction = predict(saved_path)
-        id = 1 if len(numbers) == 0 else numbers[-1]['id'] + 1
-        number = {
-            'id': id,
-            'file name': filename,
-            'time': time.time(),
-            'prediction': prediction
-        }
-        numbers.append(number)
-        return jsonify({"upload status": u"success"}, 201)
-    # following is displayed when the request is GET
-    return jsonify({"new upload": u"allowed extension: jpg, png, bmp, jpeg"})
+    # check if the post request has the file part
+    if 'file' not in request.files:
+        abort(400)
+    file = request.files['file']
+    # check if the file has the allowed format
+    if not (file and allowed_file(file.filename)):
+        abort(422)
+    filename = secure_filename(file.filename)
+    saved_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(saved_path)
+    # add new number to numbers
+    prediction = predict(saved_path)
+    id = 1 if len(numbers) == 0 else numbers[-1]['id'] + 1
+    number = {
+        'id': id,
+        'file_name': filename,
+        'time': time.time(),
+        'prediction': prediction
+    }
+    numbers.append(number)
+    # add data in the cassandra table
+    insertData(session, id, filename, prediction, time.time())
+    return jsonify({"upload status": u"success"}, 201)
 
 
 @app.errorhandler(400)

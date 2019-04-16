@@ -52,9 +52,3 @@ def predict(path):
     img2arr = (np.expand_dims(img2arr, 0))
     prediction = model.predict(img2arr)
     return int(np.argmax(prediction[0]))
-
-
-if __name__ == "__main__":
-    train()
-    evaluate()
-    print("Prediction: %d" % predict("/root/Big-Data/3/1004.jpg"))
