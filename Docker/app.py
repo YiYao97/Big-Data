@@ -1,50 +1,22 @@
-from flask import Flask, request, jsonify, make_response,\
-        redirect, url_fo, abort
+from flask import Flask, request, jsonify, make_response, abort
 from werkzeug.utils import secure_filename
 import os
+import time
 from mnist_soft import predict
 
 
-UPLOAD_FOLDER = '/root/Docker'
+UPLOAD_FOLDER = '/root/Big-Data/Docker/uploaded_images'
 ALLOWED_EXTENSIONS = set(['JPG', 'PNG', 'png', 'jpg', 'jpeg', 'bmp'])
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-numbers = [
-    {
-        'id': 1,
-        'title': u'number1',
-        'description': u'identify this number as 1',
-        'done': False
-    },
-    {
-        'id': 2,
-        'title': u'number2',
-        'description': u'identify this number as 2',
-        'done': False
-    }
-]
+numbers = []
 
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() \
-            in ALLOWED_EXTENSIONS
-
-
-@app.route('/mnist/upload_image', methods=['GET', 'POST'])
-def upload_file():
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            return redirect(request.url)
-        file = request.files['file']
-        if file.filename == '':
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('uploaded_file', filename=filename))
-    return jsonify({'upload_file': filename})
+    return '.' in filename and \
+            filename.rsplit('.',  1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @app.route('/numbers', methods=['GET'])
@@ -60,58 +32,56 @@ def get_number(number_id):
     return jsonify({'number': number[0]})
 
 
-@app.errorhandler(404)
-def not_found(error):
-    return make_response(jsonify({'error': 'Not found'}), 404)
-
-
-@app.errorhandler(400)
-def bad_request(error):
-    return make_response(jsonify({'error': 'Bad Request'}), 400)
-
-
-@app.route('/numbers/upload', methods=['POST'])
-def upload_number():
-    if not request.json or not 'title' in request.json:
-        abort(400)
-    number = {
-        'id': numbers[-1]['id'] + 1,
-        'title': request.json['title'],
-        'description': request.json.get('description', ""),
-        'done': False
-    }
-    numbers.append(number)
-    return jsonify({'number': number}), 201
-
-
 @app.route('/numbers/<int:number_id>', methods=['DELETE'])
 def delete_number(number_id):
     number = [number for number in numbers if number['id'] == number_id]
     if len(number) == 0:
         abort(404)
     numbers.remove(number[0])
-    return jsonify({'result': True})
+    return jsonify({'Delete': u"Success"})
 
 
-@app.route('/numbers/<int:number_id>', methods=['PUT'])
-def update_number(number_id):
-    number = [number for number in numbers if number['id'] == number_id]
-    if len(number) == 0:
-        abort(404)
-    if not request.json:
-        abort(400)
-    if 'title' in request.json and type(request.json['title']) != str:
-        abort(400)
-    if 'description' in request.json and type(request.json['description']) \
-       is not str:
-        abort(400)
-    if 'done' in request.json and type(request.json['done']) is not bool:
-        abort(400)
-    number[0]['title'] = request.json.get('title', number[0]['title'])
-    number[0]['description'] = request.json.get('title',
-                                                number[0]['description'])
-    number[0]['done'] = request.json.get('title', number[0]['done'])
-    return jsonify({'number': number})
+@app.route('/numbers', methods=['POST'])
+def create_number():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            abort(400)
+        file = request.files['file']
+        # check if the file has the allowed format
+        if not (file and allowed_file(file.filename)):
+            abort(422)
+        filename = secure_filename(file.filename)
+        saved_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(saved_path)
+        # add new number to numbers
+        prediction = predict(saved_path)
+        id = 1 if len(numbers) == 0 else numbers[-1]['id'] + 1
+        number = {
+            'id': id,
+            'file name': filename,
+            'time': time.time(),
+            'prediction': prediction
+        }
+        numbers.append(number)
+        return jsonify({"upload status": u"success"}, 201)
+    # following is displayed when the request is GET
+    return jsonify({"new upload": u"allowed extension: jpg, png, bmp, jpeg"})
+
+
+@app.errorhandler(400)
+def bad_request(error):
+    return make_response(jsonify({'error': 'Bad request'}, 400))
+
+
+@app.errorhandler(404)
+def not_found(error):
+    return make_response(jsonify({'error': 'Not found'}), 404)
+
+
+@app.errorhandler(422)
+def Unprocessable_entity(error):
+    return make_response(jsonify({'error': 'Unprocessable entity'}, 422))
 
 
 if __name__ == '__main__':
