@@ -1,2 +1,4 @@
 Flask
-Redis
+tensorflow
+cassandra-driver
+pillow

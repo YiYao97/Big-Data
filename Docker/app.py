@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 from mnist_soft import predict
 from cas import createKeySpace, insertData, deleteData
 
-UPLOAD_FOLDER = '/root/Big-Data/Docker/uploaded_images'
+UPLOAD_FOLDER = 'uploaded_images'
 ALLOWED_EXTENSIONS = set(['JPG', 'PNG', 'png', 'jpg', 'jpeg', 'bmp'])
 
 app = Flask(__name__)
@@ -41,7 +41,7 @@ def delete_number(number_id):
     numbers.remove(number[0])
     # delete data in cassandra table
     deleteData(session, number_id)
-    return jsonify({'Delete': u"Success"})
+    return jsonify({'Delete': "Success"})
 
 
 @app.route('/numbers', methods=['POST'])
@@ -68,7 +68,7 @@ def create_number():
     numbers.append(number)
     # add data in the cassandra table
     insertData(session, id, filename, prediction, time.time())
-    return jsonify({"upload status": u"success"}, 201)
+    return jsonify({"upload status": "success"}), 201
 
 
 @app.errorhandler(400)
@@ -82,9 +82,9 @@ def not_found(error):
 
 
 @app.errorhandler(422)
-def Unprocessable_entity(error):
+def unprocessable_entity(error):
     return make_response(jsonify({'error': 'Unprocessable entity'}, 422))
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=80, debug=True)

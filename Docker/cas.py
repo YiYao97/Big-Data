@@ -10,7 +10,7 @@ log.addHandler(handler)
 
 
 def createKeySpace(KEYSPACE):
-    cluster = Cluster(contact_points=['127.0.0.1'], port=9042)
+    cluster = Cluster()
     session = cluster.connect()
     log.info("Creating keyspace...")
     try:
@@ -49,10 +49,10 @@ def insertData(session, id, file_name, prediction, time):
                     (id, file_name, prediction, time)
                     )
 
-    
+
 def deleteData(session, id):
     session.execute("""
-                    DELETE FROM predictions 
+                    DELETE FROM predictions
                     WHERE id=%s;
                     """,
                     (id,)
