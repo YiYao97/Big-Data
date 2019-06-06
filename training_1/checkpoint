@@ -1,2 +1,0 @@
-model_checkpoint_path: "/root/Big-Data/training_1/cp.ckpt"
-all_model_checkpoint_paths: "/root/Big-Data/training_1/cp.ckpt"

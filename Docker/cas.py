@@ -10,7 +10,7 @@ log.addHandler(handler)
 
 
 def createKeySpace(KEYSPACE):
-    cluster = Cluster()
+    cluster = Cluster(['95.179.198.159'])
     session = cluster.connect()
     log.info("Creating keyspace...")
     try:
