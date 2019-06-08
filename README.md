@@ -86,4 +86,4 @@ curl -X DELETE http://localhost:4000/numbers/<prediction_id>  | Delete a specifi
   ```
   Select * from predictions;
   ```
-  ![alt text](http://url/to/img.png)
+  <img width="746" alt="Screenshot 2019-06-08 at 23 17 58" src="https://user-images.githubusercontent.com/47800173/59150889-cc81a080-8a43-11e9-84dd-de9b730fa480.png">
