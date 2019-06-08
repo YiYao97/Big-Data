@@ -14,32 +14,55 @@ The very first step is to install Docker on your local machine (Ubuntu 18.04).
 sudo apt install docker-ce
 ```
 
+
 Next, install the following package to enable CURL.
 ```
 sudo apt-get install curl
 ```
+
 
 Finally, update the package database with the Docker package.
 ```
 sudo apt update
 ```
 
+
 ### Installing
-1. Change the working direction to the file named Docker.
+1. Change the working direction to Docker.
 
 ```
 cd Big-Data/Docker
 ```
 
-2. Build the web application with Dockerfile and give the container a name.
+2. Build the web application image with the Dockerfile with a name.
 
 ```
-docker build --tag=<app_name> .
+docker build --tag=<app_image_name> .
 ```
 
-3
+3. Create a bridge network that connect containers.
 
-End with an example of getting some data out of the system or using it for a little demo
+```
+docker network create <network_name>
+```
+
+4. Start a Cassandra server instance in detached mode. The cassandra:lastes image will be automatically pulled from Docker Hub if not found locally.
+
+```
+docker run --name <cas_name> --network <network_name> -d -p 9042:9042 cassandra:latest
+```
+
+5. Start the application container and make a cluster with the above Cassandra container.
+
+```
+docker run --name <app_container_name> --network cas-network -d -e CASSANDRA_SEEDS=<cas_name> -p 4000:80 <app_image_name>
+```
+
+6. Run the following command to check if all the containers have started successfully.
+
+```
+docker ps -a
+```
 
 ## Running the tests
 
