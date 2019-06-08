@@ -6,31 +6,38 @@ The web application will be package in one container and will make a cluster wit
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
 
-What things you need to install the software and how to install them
-
+The very first step is to install Docker on your local machine (Ubuntu 18.04). 
 ```
-Give examples
+sudo apt install docker-ce
+```
+
+Next, install the following package to enable CURL.
+```
+sudo apt-get install curl
+```
+
+Finally, update the package database with the Docker package.
+```
+sudo apt update
 ```
 
 ### Installing
-
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
+1. Change the working direction to the file named Docker.
 
 ```
-Give the example
+cd Big-Data/Docker
 ```
 
-And repeat
+2. Build the web application with Dockerfile and give the container a name.
 
 ```
-until finished
+docker build --tag=<app_name> .
 ```
+
+3
 
 End with an example of getting some data out of the system or using it for a little demo
 
