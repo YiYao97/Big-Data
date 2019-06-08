@@ -75,6 +75,7 @@ curl -X POST -F "file=@<MNIST_image_path>" http://localhost:4000/numbers  | Uplo
 curl -X DELETE http://localhost:4000/numbers/<prediction_id>  | Delete a specified prediction
 
 2. Check if the data has been stored successfully on the Cassandra instance.
+
   a. Run cqlsh(Cassandra Query Language Shell) within the same Cassandra container:
   ```
   docker exec -it <cas_name> cqlsh
